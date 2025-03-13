@@ -5,6 +5,3 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdbool.h>
-#include <math.h>
-
-bool Test_Miller_Rabin(long long N);

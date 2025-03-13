@@ -1,14 +1,14 @@
-#include "bbs.h"
-#include "Miller_Rabin_PT.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <stdbool.h>
-#include <time.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include "Miller_Rabin_PT.h"
+#include "bbs.h"
 
-const long long range_start = 10000000000000ULL; // 10^20
-const long long range_end = 100000000000000000ULL; // 10^40
+
+static const long long range_start = 1000000;
+static const long long range_end = 100000000;
 
 
 // Funzione per calcolare il Massimo Comun Divisore (MCD)
@@ -29,13 +29,13 @@ void gen_pq_BBS(long long *res) {
     do {
         p = range_start + (rand() % (range_end - range_start + 1));
         if (p % 2 == 0) p++;  // Rendi p dispari
-        while (!(p % 4 == 3 && Test_Miller_Rabin(p,20))) {
+        while (!(p % 4 == 3 && Test_Miller_Rabin(p))) {
             p += 2;
         }
 
         q = range_start + (rand() % (range_end - range_start + 1));
         if (q % 2 == 0) q++;  // Rendi q dispari
-        while (!(q % 4 == 3 && Test_Miller_Rabin(q,20))) {
+        while (!(q % 4 == 3 && Test_Miller_Rabin(q))) {
             q += 2;
         }
     } while (p == q); // Assicura che p ≠ q
