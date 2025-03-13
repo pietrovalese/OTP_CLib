@@ -12,6 +12,7 @@ int main() {
     int length = strlen((char *)message);
 
     uint8_t *key;
+    printf("Sei arrivato a %d, %s",__LINE__,__FILE__);
     do {
         key = otp_generate_random_key(length);
         if (!key) {
