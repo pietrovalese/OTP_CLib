@@ -61,11 +61,11 @@ static void file_analyzer(const char *nome_file, int *num_righe, int *max_lunghe
     fclose(file);
 }
 
-static char **read_from_file(const char *nome_file, int *num_righe) {
+static char **read_from_file(const char *input_file, int *num_righe) {
     int MAX_LUNGHEZZA, MAX_RIGHE;
-    file_analyzer(nome_file, &MAX_RIGHE, &MAX_LUNGHEZZA);
+    file_analyzer(input_file, &MAX_RIGHE, &MAX_LUNGHEZZA);
 
-    FILE *file = fopen(nome_file, "r");
+    FILE *file = fopen(input_file, "r");
     if (file == NULL) {
         perror("Errore nell'apertura del file");
         return NULL;
@@ -104,9 +104,9 @@ static char **read_from_file(const char *nome_file, int *num_righe) {
 }
 
 
-void file_to_otp(const char *nome_file, const char *output_file) {
+void file_to_otp(const char *input_file, const char *output_file) {
     int num_righe;
-    char **file_data = read_from_file(nome_file, &num_righe);
+    char **file_data = read_from_file(input_file, &num_righe);
 
     if (file_data == NULL) {
         printf("Errore nella lettura del file.\n");
