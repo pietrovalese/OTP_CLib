@@ -1,9 +1,18 @@
 # Libreria OTP con generatore BBS
 
-Questo progetto implementa una libreria **OTP (One-Time Pad)** utilizzando il generatore **BBS (Blum Blum Shub)** per la generazione di numeri casuali crittograficamente sicuri.
+Questo progetto implementa una libreria **OTP (One-Time Pad)** utilizzando il generatore **BBS (Blum Blum Shub)** per la generazione di numeri casuali crittograficamente sicuri il test di Miller Rabin per garantire la primalità fino a interi minori di 2^64.
 
 ## Struttura del progetto
-
+**include** -> otp.h
+               bbs.h
+               Miller_Rabin_PT.h
+               APR_CL.h
+**src** ->     otp.c
+               bbs.c
+               Miller_Rabin_PT.c
+               APR_CL.c
+**testing** -> example.c
+**Makefile**
 
 ## Funzionamento della libreria
 
@@ -28,14 +37,19 @@ Di seguito una panoramica delle componenti principali:
 
 Per compilare la libreria e l'eseguibile di test, eseguire:
 
-```sh
+```bash
 make
+```
 
-LD_LIBRARY_PATH=build ./build/example
+Per installare e disinstallare la libreria:
 
-make clean
+```bash
+make install
+make uninstall
+```
 
-make valgrind
+
+
 
 
 
