@@ -43,7 +43,7 @@ Ecco una panoramica delle componenti principali:
 
 ### 🔢 Test di Miller-Rabin
 
-- `Test_Miller_Rabin(long long N)`: Controlla la primalità del valore fornito in \(O(7\log^2(n))\).
+- `Test_Miller_Rabin(long long N)`: Controlla la primalità del valore fornito in \(O(7log^2(n))\).
 
 ---
 

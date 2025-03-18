@@ -62,8 +62,13 @@ static void file_analyzer(const char *nome_file, int *num_righe, int *max_lunghe
 }
 
 static char **read_from_file(const char *input_file, int *num_righe) {
-    int MAX_LUNGHEZZA, MAX_RIGHE;
+    int MAX_LUNGHEZZA = 0, MAX_RIGHE = 0;
     file_analyzer(input_file, &MAX_RIGHE, &MAX_LUNGHEZZA);
+
+    if (MAX_RIGHE == 0 || MAX_LUNGHEZZA == 0) {
+        printf("Errore: il file è vuoto o non leggibile.\n");
+        return NULL;
+    }
 
     FILE *file = fopen(input_file, "r");
     if (file == NULL) {
@@ -78,30 +83,34 @@ static char **read_from_file(const char *input_file, int *num_righe) {
         return NULL;
     }
 
-    char *buffer = malloc((MAX_LUNGHEZZA + 1) * sizeof(char));
-    if (buffer == NULL) {
-        perror("Errore di allocazione buffer");
-        free(righe);
-        fclose(file);
-        return NULL;
-    }
-
     *num_righe = 0;
+    char buffer[MAX_LUNGHEZZA + 2]; // +2 per \n e \0
 
-    while (fgets(buffer, MAX_LUNGHEZZA + 1, file) != NULL && *num_righe < MAX_RIGHE) {
-        righe[*num_righe] = malloc(strlen(buffer) + 1);
+    while (fgets(buffer, sizeof(buffer), file) != NULL && *num_righe < MAX_RIGHE) {
+        int lunghezza = strlen(buffer);
+        if (buffer[lunghezza - 1] == '\n') buffer[lunghezza - 1] = '\0';
+
+        righe[*num_righe] = malloc(lunghezza + 1);
         if (righe[*num_righe] == NULL) {
             perror("Errore di allocazione memoria per una riga");
-            break;
+
+            // Libera la memoria allocata prima di uscire
+            for (int i = 0; i < *num_righe; i++) {
+                free(righe[i]);
+            }
+            free(righe);
+            fclose(file);
+            return NULL;
         }
+
         strcpy(righe[*num_righe], buffer);
         (*num_righe)++;
     }
 
-    free(buffer);
     fclose(file);
     return righe;
 }
+
 
 
 void file_to_otp(const char *input_file, const char *output_file) {
