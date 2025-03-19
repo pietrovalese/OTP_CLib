@@ -68,6 +68,12 @@ make install
 make uninstall
 ```
 
+Per testare il codice utilizzare:
+
+```bash
+make run 
+```
+
 ---
 
 ## 📜 Licenza
