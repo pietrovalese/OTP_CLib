@@ -62,5 +62,9 @@ int main() {
     free(key);
     free(message);
 
+
+    file_to_otp("testing/input.txt", "testing/output.txt");
+    
+
     return 0;
 }

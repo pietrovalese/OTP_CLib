@@ -114,6 +114,9 @@ static char **read_from_file(const char *input_file, int *num_righe) {
 
 
 void file_to_otp(const char *input_file, const char *output_file) {
+
+    char *key_file_path="testing/key.txt";
+
     int num_righe;
     char **file_data = read_from_file(input_file, &num_righe);
 
@@ -128,7 +131,7 @@ void file_to_otp(const char *input_file, const char *output_file) {
         return;
     }
 
-    FILE *key_file = fopen("src/key.txt", "a");
+    FILE *key_file = fopen(key_file_path, "a");
     if (!key_file) {
         perror("Errore nella creazione del file delle chiavi");
         fclose(out_file);
