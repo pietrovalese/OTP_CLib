@@ -1,6 +1,10 @@
 #include "otp.h"
 #include "bbs.h"
 
+static char *hex_to_string(const char *hex);
+static void convert_hex_file_to_string(const char *input_file, const char *output_file);
+
+
 uint8_t *otp_encrypt(uint8_t *message, uint8_t *key, int length) {
     if (!message || !key) {
         printf("Errore: messaggio o chiave null!\n");
@@ -39,83 +43,185 @@ uint8_t *otp_decrypt(uint8_t *encrypted_message, uint8_t *key, int length) {
     return decrypted_message;
 }
 
-static void file_analyzer(const char *nome_file, int *num_righe, int *max_lunghezza) {
-    FILE *file = fopen(nome_file, "r");
-    if (file == NULL) {
-        perror("Errore nell'apertura del file");
-        return;
-    }
-
-    char buffer[1024];
-    *num_righe = 0;
-    *max_lunghezza = 0;
-
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        (*num_righe)++;
-        int lunghezza = strlen(buffer);
-        if (lunghezza > *max_lunghezza) {
-            *max_lunghezza = lunghezza;
-        }
-    }
-
-    fclose(file);
-}
-
 static char **read_from_file(const char *input_file, int *num_righe) {
-    int MAX_LUNGHEZZA = 0, MAX_RIGHE = 0;
-    file_analyzer(input_file, &MAX_RIGHE, &MAX_LUNGHEZZA);
-
-    if (MAX_RIGHE == 0 || MAX_LUNGHEZZA == 0) {
-        printf("Errore: il file è vuoto o non leggibile.\n");
-        return NULL;
-    }
-
     FILE *file = fopen(input_file, "r");
-    if (file == NULL) {
+    if (!file) {
         perror("Errore nell'apertura del file");
         return NULL;
     }
 
-    char **righe = malloc(MAX_RIGHE * sizeof(char *));
-    if (righe == NULL) {
-        perror("Errore di allocazione memoria");
-        fclose(file);
-        return NULL;
-    }
-
+    char **righe = NULL;
     *num_righe = 0;
-    char buffer[MAX_LUNGHEZZA + 2]; // +2 per \n e \0
+    size_t len = 0;
+    char *line = NULL;
 
-    while (fgets(buffer, sizeof(buffer), file) != NULL && *num_righe < MAX_RIGHE) {
-        int lunghezza = strlen(buffer);
-        if (buffer[lunghezza - 1] == '\n') buffer[lunghezza - 1] = '\0';
-
-        righe[*num_righe] = malloc(lunghezza + 1);
-        if (righe[*num_righe] == NULL) {
-            perror("Errore di allocazione memoria per una riga");
-
-            // Libera la memoria allocata prima di uscire
-            for (int i = 0; i < *num_righe; i++) {
-                free(righe[i]);
-            }
-            free(righe);
+    while (getline(&line, &len, file) != -1) {
+        righe = realloc(righe, (*num_righe + 1) * sizeof(char *));
+        if (!righe) {
+            perror("Errore di allocazione memoria");
+            free(line);
             fclose(file);
             return NULL;
         }
 
-        strcpy(righe[*num_righe], buffer);
+        // Rimuove il newline finale, se presente
+        size_t lunghezza = strlen(line);
+        if (line[lunghezza - 1] == '\n') {
+            line[lunghezza - 1] = '\0';
+        }
+
+        righe[*num_righe] = strdup(line);
+        if (!righe[*num_righe]) {
+            perror("Errore di allocazione memoria per una riga");
+            free(line);
+            fclose(file);
+
+            // Libera le righe già allocate prima di uscire
+            for (int i = 0; i < *num_righe; i++) {
+                free(righe[i]);
+            }
+            free(righe);
+            return NULL;
+        }
+
         (*num_righe)++;
     }
 
+    free(line);
     fclose(file);
     return righe;
 }
 
+void otp_encrypt_file(const char *input_file, const char *keys_file, const char *output_file) {
+    int num_righe_input, num_righe_key;
+    char **file_data = read_from_file(input_file, &num_righe_input);
+    char **key_data = read_from_file(keys_file, &num_righe_key);
+
+    if (!file_data || !key_data) {
+        printf("Errore nella lettura dei file.\n");
+        return;
+    }
+
+    if (num_righe_input != num_righe_key) {
+        printf("Errore: il numero di righe nei file non coincide.\n");
+
+        // Libera memoria allocata
+        for (int i = 0; i < num_righe_input; i++) free(file_data[i]);
+        for (int i = 0; i < num_righe_key; i++) free(key_data[i]);
+        free(file_data);
+        free(key_data);
+        return;
+    }
+
+    FILE *out_file = fopen(output_file, "w");
+    if (!out_file) {
+        perror("Errore nella creazione del file crittografato");
+
+        // Libera memoria allocata
+        for (int i = 0; i < num_righe_input; i++) free(file_data[i]);
+        for (int i = 0; i < num_righe_key; i++) free(key_data[i]);
+        free(file_data);
+        free(key_data);
+        return;
+    }
+
+    printf("Contenuto crittografato del file:\n");
+    for (int i = 0; i < num_righe_input; i++) {
+        int length = strlen(file_data[i]);
+
+        if (length == 0) {
+            printf("Avviso: la riga %d non è stata crittografata (vuota).\n", i);
+            continue;
+        }
+
+        uint8_t *encrypted = otp_encrypt((uint8_t *)file_data[i], (uint8_t *)key_data[i], length);
+
+        if (encrypted) {
+            for (int j = 0; j < length; j++) {
+                fprintf(out_file, "%02X ", encrypted[j]);
+            }
+            fprintf(out_file, "\n");
+            free(encrypted);
+        }
+
+        free(file_data[i]);
+        free(key_data[i]);
+    }
+
+    free(file_data);
+    free(key_data);
+
+    convert_hex_file_to_string(output_file, output_file);
+
+    fclose(out_file);
+}
+
+void otp_decrypt_file(const char *input_file, const char *keys_file, const char *output_file) {
+    int num_righe_input, num_righe_key;
+    char **file_data = read_from_file(input_file, &num_righe_input);
+    char **key_data = read_from_file(keys_file, &num_righe_key);
+
+    if (!file_data || !key_data) {
+        printf("Errore nella lettura dei file.\n");
+        return;
+    }
+
+    if (num_righe_input != num_righe_key) {
+        printf("Errore: il numero di righe nei file non coincide.\n");
+
+        // Libera memoria allocata
+        for (int i = 0; i < num_righe_input; i++) free(file_data[i]);
+        for (int i = 0; i < num_righe_key; i++) free(key_data[i]);
+        free(file_data);
+        free(key_data);
+        return;
+    }
+
+    FILE *out_file = fopen(output_file, "w");
+    if (!out_file) {
+        perror("Errore nella creazione del file crittografato");
+
+        // Libera memoria allocata
+        for (int i = 0; i < num_righe_input; i++) free(file_data[i]);
+        for (int i = 0; i < num_righe_key; i++) free(key_data[i]);
+        free(file_data);
+        free(key_data);
+        return;
+    }
+
+    printf("Contenuto crittografato del file:\n");
+    for (int i = 0; i < num_righe_input; i++) {
+        int length = strlen(file_data[i]);
+
+        if (length == 0) {
+            printf("Avviso: la riga %d non è stata crittografata (vuota).\n", i);
+            continue;
+        }
+
+        uint8_t *decrypted = otp_decrypt((uint8_t *)file_data[i], (uint8_t *)key_data[i], length);
+
+        if (decrypted) {
+            for (int j = 0; j < length; j++) {
+                fprintf(out_file, "%02X ", decrypted[j]);
+            }
+            fprintf(out_file, "\n");
+            free(decrypted);
+        }
+
+        free(file_data[i]);
+        free(key_data[i]);
+    }
+
+    free(file_data);
+    free(key_data);
+
+    convert_hex_file_to_string(output_file, output_file);
+
+    fclose(out_file);
+}
 
 
-void file_to_otp(const char *input_file, const char *output_file) {
-
-    char *key_file_path="testing/key.txt";
+void otp_encrypt_file_rand(const char *input_file, const char *keys_file, const char *output_file) {
 
     int num_righe;
     char **file_data = read_from_file(input_file, &num_righe);
@@ -125,13 +231,13 @@ void file_to_otp(const char *input_file, const char *output_file) {
         return;
     }
 
-    FILE *out_file = fopen(output_file, "a");
+    FILE *out_file = fopen(output_file, "w");
     if (!out_file) {
         perror("Errore nella creazione del file crittografato");
         return;
     }
 
-    FILE *key_file = fopen(key_file_path, "a");
+    FILE *key_file = fopen(keys_file, "w");
     if (!key_file) {
         perror("Errore nella creazione del file delle chiavi");
         fclose(out_file);
@@ -182,3 +288,65 @@ uint8_t *otp_generate_random_key(int length){
     return key;
 }
 
+
+static char *hex_to_string(const char *hex) {
+    if (!hex) return NULL;
+
+    size_t len = strlen(hex);
+    if (len % 2 != 0) {
+        fprintf(stderr, "Errore: la stringa esadecimale deve avere una lunghezza pari.\n");
+        return NULL;
+    }
+
+    size_t str_len = len / 2;
+    char *str = malloc(str_len + 1);
+    if (!str) {
+        perror("Errore di allocazione memoria");
+        return NULL;
+    }
+
+    for (size_t i = 0; i < str_len; i++) {
+        sscanf(hex + (i * 2), "%2hhx", &str[i]);  // Converte ogni coppia di caratteri esadecimali in un byte
+    }
+    str[str_len] = '\0';
+
+    return str;
+}
+
+// Funzione per convertire un file esadecimale in una stringa
+static void convert_hex_file_to_string(const char *input_file, const char *output_file) {
+    FILE *in_file = fopen(input_file, "r");
+    if (!in_file) {
+        perror("Errore nell'apertura del file di input");
+        return;
+    }
+
+    FILE *out_file = fopen(output_file, "w");
+    if (!out_file) {
+        perror("Errore nella creazione del file di output");
+        fclose(in_file);
+        return;
+    }
+
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, in_file)) != -1) {
+        // Rimuove il newline finale, se presente
+        if (line[read - 1] == '\n') {
+            line[read - 1] = '\0';
+        }
+
+        char *decoded = hex_to_string(line);
+        if (decoded) {
+            fprintf(out_file, "%s\n", decoded);
+            printf("Decodificato: %s\n", decoded);  // Stampa a console per debugging
+            free(decoded);
+        }
+    }
+
+    free(line);
+    fclose(in_file);
+    fclose(out_file);
+}

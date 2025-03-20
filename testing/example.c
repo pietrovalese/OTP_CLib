@@ -62,9 +62,8 @@ int main() {
     free(key);
     free(message);
 
-
-    file_to_otp("testing/input.txt", "testing/output.txt");
-    
+    otp_encrypt_file("testing/input.txt", "testing/key_file.txt", "testing/output.txt");
+    //otp_decrypt_file("testing/output.txt", "testing/key_file.txt", "testing/input.txt");
 
     return 0;
 }
