@@ -11,7 +11,7 @@ uint64_t *otp_encrypt(uint64_t *message, uint64_t *key, int length) {
         return NULL;
     }
 
-    uint64_t *encrypted_message = (uint64_t *)malloc(length);
+    uint64_t *encrypted_message = (uint64_t *)malloc(length* sizeof(uint64_t));
     if (!encrypted_message) {
         printf("Errore di allocazione memoria per il messaggio cifrato (riga %d, file %s)\n", __LINE__, __FILE__);
         exit(1);
@@ -30,7 +30,7 @@ uint64_t *otp_decrypt(uint64_t *encrypted_message, uint64_t *key, int length) {
         return NULL;
     }
 
-    uint64_t *decrypted_message = (uint64_t *)malloc(length);
+    uint64_t *decrypted_message = (uint64_t *)malloc(length* sizeof(uint64_t));
     if (!decrypted_message) {
         printf("Errore di allocazione memoria per il messaggio decifrato (riga %d, file %s)\n", __LINE__, __FILE__);
         exit(1);
@@ -138,7 +138,7 @@ void otp_encrypt_file(const char *input_file, const char *keys_file, const char 
 
         if (encrypted) {
             for (int j = 0; j < length; j++) {
-                fprintf(out_file, "%02X ", encrypted[j]);
+                fprintf(out_file, "%02lX ", encrypted[j]);
             }
             fprintf(out_file, "\n");
             free(encrypted);
@@ -202,7 +202,7 @@ void otp_decrypt_file(const char *input_file, const char *keys_file, const char 
 
         if (decrypted) {
             for (int j = 0; j < length; j++) {
-                fprintf(out_file, "%02X ", decrypted[j]);
+                fprintf(out_file, "%02lX ", decrypted[j]);
             }
             fprintf(out_file, "\n");
             free(decrypted);
@@ -259,8 +259,8 @@ void otp_encrypt_file_rand(const char *input_file, const char *keys_file, const 
         if (encrypted) {
             // Scrive i dati crittografati in formato esadecimale
             for (int j = 0; j < length; j++) {
-                fprintf(out_file, "%02X ", encrypted[j]);
-                fprintf(key_file, "%02X ", key[j]);
+                fprintf(out_file, "%02lX ", encrypted[j]);
+                fprintf(key_file, "%02lX ", key[j]);
             }
             fprintf(out_file, "\n");
             fprintf(key_file, "\n");
