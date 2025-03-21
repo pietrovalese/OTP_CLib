@@ -38,7 +38,9 @@ Ecco una panoramica delle componenti principali:
 
 - `otp_encrypt(uint8_t *message, uint8_t *key, int length)`: Cifra un messaggio usando il cifrario OTP.
 - `otp_decrypt(uint8_t *encrypted_message, uint8_t *key, int length)`: Decifra un messaggio cifrato con OTP.
-- `file_to_otp(const char *input_file, const char *output_file)`: Cifra o decifra un file cifrato con OTP.
+- `void otp_encrypt_file(const char *input_file, const char *keys_file, const char *output_file)`: Cifra un file txt in input con un file di chiavi fornito dall'utente
+- `void otp_decrypt_file(const char *input_file, const char *keys_file, const char *output_file)`: Decifra un file txt in input con un file di chiavi fornito dall'utente
+- `otp_encrypt_file_rand(const char *input_file, const char *key_file, const char *output_file)`: Cifra un file txt con un file di chiave generato randomicamente.
 - `otp_generate_random_key(int length)`: Genera una chiave randomica di lunghezza specificata.
 
 ### 🔢 Test di Miller-Rabin

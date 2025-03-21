@@ -9,7 +9,7 @@ int main() {
     const char *text = "HELLO";
     int length = strlen(text);
 
-    uint8_t *message = (uint8_t *)malloc(length + 1);  // +1 per il terminatore
+    uint64_t *message = (uint64_t *)malloc(length + 1);  // +1 per il terminatore
     if (!message) {
         printf("Errore di allocazione memoria!\n");
         return 1;
@@ -17,7 +17,7 @@ int main() {
     strncpy((char *)message, text, length + 1);
 
     // Generazione della chiave casuale
-    uint8_t *key = otp_generate_random_key(length);
+    uint64_t *key = otp_generate_random_key(length);
     if (!key) {
         printf("Errore: impossibile generare la chiave.\n");
         free(message);
@@ -31,7 +31,7 @@ int main() {
     printf("\n");
 
     // Allocazione della memoria per il testo cifrato e decifrato
-    uint8_t *ciphertext = otp_encrypt(message, key, length);
+    uint64_t *ciphertext = otp_encrypt(message, key, length);
     if (!ciphertext) {
         printf("Errore nella cifratura.\n");
         free(message);
@@ -45,7 +45,7 @@ int main() {
     }
     printf("\n");
 
-    uint8_t *decrypted = otp_decrypt(ciphertext, key, length);
+    uint64_t *decrypted = otp_decrypt(ciphertext, key, length);
     if (!decrypted) {
         printf("Errore nella decifratura.\n");
         free(message);

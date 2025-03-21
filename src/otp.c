@@ -5,13 +5,13 @@ static char *hex_to_string(const char *hex);
 static void convert_hex_file_to_string(const char *input_file, const char *output_file);
 
 
-uint8_t *otp_encrypt(uint8_t *message, uint8_t *key, int length) {
+uint64_t *otp_encrypt(uint64_t *message, uint64_t *key, int length) {
     if (!message || !key) {
         printf("Errore: messaggio o chiave null!\n");
         return NULL;
     }
 
-    uint8_t *encrypted_message = (uint8_t *)malloc(length);
+    uint64_t *encrypted_message = (uint64_t *)malloc(length);
     if (!encrypted_message) {
         printf("Errore di allocazione memoria per il messaggio cifrato (riga %d, file %s)\n", __LINE__, __FILE__);
         exit(1);
@@ -24,13 +24,13 @@ uint8_t *otp_encrypt(uint8_t *message, uint8_t *key, int length) {
     return encrypted_message;
 }
 
-uint8_t *otp_decrypt(uint8_t *encrypted_message, uint8_t *key, int length) {
+uint64_t *otp_decrypt(uint64_t *encrypted_message, uint64_t *key, int length) {
     if (!encrypted_message || !key) {
         printf("Errore: messaggio cifrato o chiave null!\n");
         return NULL;
     }
 
-    uint8_t *decrypted_message = (uint8_t *)malloc(length);
+    uint64_t *decrypted_message = (uint64_t *)malloc(length);
     if (!decrypted_message) {
         printf("Errore di allocazione memoria per il messaggio decifrato (riga %d, file %s)\n", __LINE__, __FILE__);
         exit(1);
@@ -134,7 +134,7 @@ void otp_encrypt_file(const char *input_file, const char *keys_file, const char 
             continue;
         }
 
-        uint8_t *encrypted = otp_encrypt((uint8_t *)file_data[i], (uint8_t *)key_data[i], length);
+        uint64_t *encrypted = otp_encrypt((uint64_t *)file_data[i], (uint64_t *)key_data[i], length);
 
         if (encrypted) {
             for (int j = 0; j < length; j++) {
@@ -198,7 +198,7 @@ void otp_decrypt_file(const char *input_file, const char *keys_file, const char 
             continue;
         }
 
-        uint8_t *decrypted = otp_decrypt((uint8_t *)file_data[i], (uint8_t *)key_data[i], length);
+        uint64_t *decrypted = otp_decrypt((uint64_t *)file_data[i], (uint64_t *)key_data[i], length);
 
         if (decrypted) {
             for (int j = 0; j < length; j++) {
@@ -253,8 +253,8 @@ void otp_encrypt_file_rand(const char *input_file, const char *keys_file, const 
             continue;
         }
 
-        uint8_t *key = otp_generate_random_key(length);
-        uint8_t *encrypted = otp_encrypt((uint8_t *)file_data[i], key, length);
+        uint64_t *key = otp_generate_random_key(length);
+        uint64_t *encrypted = otp_encrypt((uint64_t *)file_data[i], key, length);
 
         if (encrypted) {
             // Scrive i dati crittografati in formato esadecimale
@@ -278,8 +278,8 @@ void otp_encrypt_file_rand(const char *input_file, const char *keys_file, const 
 }
 
 
-uint8_t *otp_generate_random_key(int length){
-    uint8_t *key = (uint8_t *)malloc(sizeof(uint8_t) * length);
+uint64_t *otp_generate_random_key(int length){
+    uint64_t *key = (uint64_t *)malloc(sizeof(uint64_t) * length);
     if (!key) {
         printf("Errore di allocazione della chiave!\n");
         exit(1);

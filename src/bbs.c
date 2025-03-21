@@ -65,7 +65,7 @@ long long generate_secure_y(long long num) {
 }
 
 // Genera una sequenza di byte casuali con Blum Blum Shub
-void bbs_generate_bytes(uint8_t *buffer, int length) {
+void bbs_generate_bytes(uint64_t *buffer, int length) {
     long long pq[2];
     gen_pq_BBS(pq);
     long long p = pq[0], q = pq[1];
@@ -75,7 +75,7 @@ void bbs_generate_bytes(uint8_t *buffer, int length) {
     long long x = (y * y) % num;
 
     for (int i = 0; i < length; i++) {
-        buffer[i] = (uint8_t)(x & 0xFF);  // Prendi gli ultimi 8 bit
+        buffer[i] = (uint64_t)(x & 0xFF);  // Prendi gli ultimi 8 bit
         x = (x * x) % num;
     }
 }

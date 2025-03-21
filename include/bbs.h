@@ -28,7 +28,7 @@ void gen_pq_BBS(long long *res);
  * @param buffer Array in cui verranno memorizzati i byte casuali.
  * @param length Numero di byte da generare.
  */
-void bbs_generate_bytes(uint8_t *buffer, int length);
+void bbs_generate_bytes(uint64_t *buffer, int length);
 
 #ifdef __cplusplus
 }
